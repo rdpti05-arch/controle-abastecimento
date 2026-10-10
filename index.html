@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Abastecimento</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+        .container { max-width: 600px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: auto; }
+        h2 { text-align: center; color: #333; }
+        label { display: block; margin-top: 12px; font-weight: bold; color: #555; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; margin-top: 20px; border-radius: 4px; font-size: 16px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .loading { display: none; text-align: center; margin-top: 10px; color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Controle de Abastecimento</h2>
+    <form id="fuelForm">
+        <label>Nome do Condutor:</label>
+        <input type="text" id="nome" required>
+
+        <label>Posto:</label>
+        <input type="text" id="posto" required>
+
+        <label>Capex / Opex:</label>
+        <select id="capexOpex">
+            <option value="OPEX">OPEX</option>
+            <option value="CAPEX">CAPEX</option>
+        </select>
+
+        <label>Data do Abastecimento:</label>
+        <input type="date" id="dataAbst" required>
+
+        <label>Hora:</label>
+        <input type="time" id="hora" required>
+
+        <label>Veículo / Modelo:</label>
+        <input type="text" id="veiculo" required>
+
+        <label>Placa:</label>
+        <input type="text" id="placa" required style="text-transform: uppercase;">
+
+        <label>Foto do KM Atual:</label>
+        <input type="file" id="fotoKm" accept="image/*" capture="environment" required>
+
+        <label>Tipo de Combustível:</label>
+        <select id="combustivel">
+            <option value="Gasolina">Gasolina</option>
+            <option value="Etanol">Etanol</option>
+            <option value="Diesel">Diesel</option>
+        </select>
+
+        <label>Quantidade de Litros:</label>
+        <input type="number" step="0.01" id="litros" required oninput="calcularTotal()">
+
+        <label>Valor Unitário (R$):</label>
+        <input type="number" step="0.01" id="valorUnit" required oninput="calcularTotal()">
+
+        <label>Valor Total (R$):</label>
+        <input type="number" step="0.01" id="valorTotal" readonly style="background: #e9ecef;">
+
+        <label>Foto do Comprovante (Nota/Cupom):</label>
+        <input type="file" id="fotoComp" accept="image/*" capture="environment" required>
+
+        <button type="submit" id="btnEnviar">Enviar Registro</button>
+        <div class="loading" id="loadingText">Enviando dados e fotos, aguarde...</div>
+    </form>
+</div>
+
+<script>
+    // Preenche data e hora atuais automaticamente
+    document.getElementById('dataAbst').valueAsDate = new Date();
+    const now = new Date();
+    document.getElementById('hora').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    function calcularTotal() {
+        let litros = parseFloat(document.getElementById('litros').value) || 0;
+        let valorUnit = parseFloat(document.getElementById('valorUnit').value) || 0;
+        let total = litros * valorUnit;
+        document.getElementById('valorTotal').value = total.toFixed(2);
+    }
+
+    document.getElementById('fuelForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        document.getElementById('btnEnviar').style.display = 'none';
+        document.getElementById('loadingText').style.display = 'block';
+
+        // Converter imagens para Base64
+        toBase64(document.getElementById('fotoKm').files[0], function(kmBase64) {
+            toBase64(document.getElementById('fotoComp').files[0], function(compBase64) {
+                
+                let formData = {
+                    nome: document.getElementById('nome').value,
+                    posto: document.getElementById('posto').value,
+                    capexOpex: document.getElementById('capexOpex').value,
+                    dataAbst: document.getElementById('dataAbst').value,
+                    hora: document.getElementById('hora').value,
+                    veiculo: document.getElementById('veiculo').value,
+                    placa: document.getElementById('placa').value.toUpperCase(),
+                    fotoKm: kmBase64,
+                    combustivel: document.getElementById('combustivel').value,
+                    litros: document.getElementById('litros').value,
+                    fotoComp: compBase64,
+                    valorUnit: document.getElementById('valorUnit').value,
+                    valorTotal: document.getElementById('valorTotal').value
+                };
+
+                const scriptURL = "https://script.google.com/macros/s/AKfycby2lSrGLJMlIZTWaCJXvvJAjhHPzqVCr9dax4vww5SPjtVdQKYr2dEJA1hjIRTJ0J9M/exec";
+
+                fetch(scriptURL, {
+                    method: 'POST',
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Abastecimento registrado com sucesso!');
+                    document.getElementById('fuelForm').reset();
+                    document.getElementById('btnEnviar').style.display = 'block';
+                    document.getElementById('loadingText').style.display = 'none';
+                    // Restaura data e hora
+                    document.getElementById('dataAbst').valueAsDate = new Date();
+                    document.getElementById('hora').value = String(new Date().getHours()).padStart(2, '0') + ':' + String(new Date().getMinutes()).padStart(2, '0');
+                })
+                .catch(error => {
+                    console.error('Erro!', error);
+                    alert('Erro ao enviar. Tente novamente.');
+                    document.getElementById('btnEnviar').style.display = 'block';
+                    document.getElementById('loadingText').style.display = 'none';
+                });
+            });
+        });
+    });
+
+    function toBase64(file, callback) {
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function () { callback(reader.result); };
+        reader.onerror = function (error) { console.log('Erro: ', error); };
+    }
+</script>
+
+</body>
+</html>

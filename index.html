@@ -5,9 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Abastecimento</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
-        .container { max-width: 600px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: auto; }
-        h2 { text-align: center; color: #333; }
+        body { 
+            font-family: Arial, sans-serif; 
+            /* Se quiser colocar uma imagem de fundo, insira o link dela abaixo no 'url(...)' ou deixe apenas a cor padrão */
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('LINK_DA_SUA_IMAGEM_DE_FUNDO_AQUI');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            margin: 0; 
+            padding: 20px; 
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 600px; 
+            background: #ffffff; 
+            padding: 25px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+            margin: auto; 
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo-container img {
+            max-width: 150px;
+            height: auto;
+        }
+        h2 { text-align: center; color: #333; margin-top: 0; }
         label { display: block; margin-top: 12px; font-weight: bold; color: #555; }
         input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; margin-top: 20px; border-radius: 4px; font-size: 16px; cursor: pointer; }
@@ -18,6 +43,11 @@
 <body>
 
 <div class="container">
+    <!-- Logo da Empresa (Insira o link direto da imagem da logo abaixo, se desejar) -->
+    <div class="logo-container">
+        <img src="LINK_DA_SUA_LOGO_AQUI" alt="Logo da Empresa">
+    </div>
+
     <h2>Controle de Abastecimento</h2>
     <form id="fuelForm">
         <label>Nome do Condutor:</label>
@@ -72,7 +102,6 @@
 </div>
 
 <script>
-    // Preenche data e hora atuais automaticamente
     document.getElementById('dataAbst').valueAsDate = new Date();
     const now = new Date();
     document.getElementById('hora').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
@@ -89,11 +118,11 @@
         document.getElementById('btnEnviar').style.display = 'none';
         document.getElementById('loadingText').style.display = 'block';
 
-        // Converter imagens para Base64
         toBase64(document.getElementById('fotoKm').files[0], function(kmBase64) {
             toBase64(document.getElementById('fotoComp').files[0], function(compBase64) {
                 
                 let formData = {
+                    token: "Rota@102030", // Senha de segurança configurada
                     nome: document.getElementById('nome').value,
                     posto: document.getElementById('posto').value,
                     capexOpex: document.getElementById('capexOpex').value,
@@ -117,17 +146,20 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    alert('Abastecimento registrado com sucesso!');
-                    document.getElementById('fuelForm').reset();
+                    if(data.result === "success") {
+                        alert('Abastecimento registrado com sucesso!');
+                        document.getElementById('fuelForm').reset();
+                        document.getElementById('dataAbst').valueAsDate = new Date();
+                        document.getElementById('hora').value = String(new Date().getHours()).padStart(2, '0') + ':' + String(new Date().getMinutes()).padStart(2, '0');
+                    } else {
+                        alert('Erro: ' + data.message);
+                    }
                     document.getElementById('btnEnviar').style.display = 'block';
                     document.getElementById('loadingText').style.display = 'none';
-                    // Restaura data e hora
-                    document.getElementById('dataAbst').valueAsDate = new Date();
-                    document.getElementById('hora').value = String(new Date().getHours()).padStart(2, '0') + ':' + String(new Date().getMinutes()).padStart(2, '0');
                 })
                 .catch(error => {
                     console.error('Erro!', error);
-                    alert('Erro ao enviar. Tente novamente.');
+                    alert('Erro de conexão ao enviar. Tente novamente.');
                     document.getElementById('btnEnviar').style.display = 'block';
                     document.getElementById('loadingText').style.display = 'none';
                 });

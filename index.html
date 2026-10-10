@@ -7,7 +7,6 @@
     <style>
         body { 
             font-family: Arial, sans-serif; 
-            /* Se quiser colocar uma imagem de fundo, insira o link dela abaixo no 'url(...)' ou deixe apenas a cor padrão */
             background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('LINK_DA_SUA_IMAGEM_DE_FUNDO_AQUI');
             background-size: cover;
             background-position: center;
@@ -38,18 +37,24 @@
         button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; margin-top: 20px; border-radius: 4px; font-size: 16px; cursor: pointer; }
         button:hover { background: #0056b3; }
         .loading { display: none; text-align: center; margin-top: 10px; color: #007bff; font-weight: bold; }
+        .security-box { background: #fff3cd; border: 1px solid #ffeeba; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Logo da Empresa (Insira o link direto da imagem da logo abaixo, se desejar) -->
     <div class="logo-container">
         <img src="LINK_DA_SUA_LOGO_AQUI" alt="Logo da Empresa">
     </div>
 
     <h2>Controle de Abastecimento</h2>
     <form id="fuelForm">
+        <!-- Campo de Segurança / Senha -->
+        <div class="security-box">
+            <label style="margin-top:0; color:#856404;">Senha de Acesso (Token):</label>
+            <input type="password" id="token" required placeholder="Digite a senha liberada">
+        </div>
+
         <label>Nome do Condutor:</label>
         <input type="text" id="nome" required>
 
@@ -128,7 +133,7 @@
             toBase64(document.getElementById('fotoComp').files[0], function(compBase64) {
                 
                 let formData = {
-                    token: "Rota@102030", // Senha de segurança validada no script
+                    token: document.getElementById('token').value, // Envia a senha digitada
                     nome: document.getElementById('nome').value,
                     posto: document.getElementById('posto').value,
                     capexOpex: document.getElementById('capexOpex').value,
